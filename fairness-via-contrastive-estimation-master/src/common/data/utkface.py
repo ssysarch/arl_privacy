@@ -8,10 +8,35 @@ from torch.utils.data import Dataset
 import os
 import pandas as pd
 import torch.optim as optim
+from skimage import transform
+from tensorflow.keras.utils import to_categorical
 
-
-def load_utkface(val_size=0.0):
-    train_data=
+def groupAge(age):
+#     [0, 5, 18, 24, 26, 27, 30, 34, 38, 46, 55, 65, len(ages)])
+    if age>=0 and age<5:
+        return 0
+    elif age>=5 and age<18:
+        return 1
+    elif age>=18 and age<24:
+        return 2
+    elif age>=24 and age<26:
+        return 3
+    elif age>=26 and age<27:
+        return 4
+    elif age>=27 and age<30:
+        return 5
+    elif age>=30 and age<34:
+        return 6
+    elif age>=34 and age<38:
+        return 7
+    elif age>=38 and age<46:
+        return 8
+    elif age>=46 and age<55:
+        return 9
+    elif age>=55 and age<65:
+        return 10
+    else:
+        return 11
 
 class Rescale(object):
     """Rescale the image in a sample to a given size.
@@ -95,6 +120,8 @@ class ToTensor(object):
         return {'image': torch.from_numpy(image),
                 'landmarks': torch.from_numpy(landmarks)}
 
+
+
 class PrivacyDataLoader:
     def __init__(self, train_data, train_label, train_sensitive_label, test_data, test_label, test_sensitive_label, trainset, testset):
         self.train_data = train_data
@@ -169,36 +196,6 @@ class FolderDataset(Dataset):
         else:
             return data[0][3]
 
-
-
-
-def groupAge(age):
-#     [0, 5, 18, 24, 26, 27, 30, 34, 38, 46, 55, 65, len(ages)])
-    if age>=0 and age<5:
-        return 0
-    elif age>=5 and age<18:
-        return 1
-    elif age>=18 and age<24:
-        return 2
-    elif age>=24 and age<26:
-        return 3
-    elif age>=26 and age<27:
-        return 4
-    elif age>=27 and age<30:
-        return 5
-    elif age>=30 and age<34:
-        return 6
-    elif age>=34 and age<38:
-        return 7
-    elif age>=38 and age<46:
-        return 8
-    elif age>=46 and age<55:
-        return 9
-    elif age>=55 and age<65:
-        return 10
-    else:
-        return 11
-
 def formatdata(labels, train_count, validation_count, images, eth_choice, verbose=False):
 
     partitions = {'train': [],
@@ -224,7 +221,6 @@ def formatdata(labels, train_count, validation_count, images, eth_choice, verbos
             data = labels.loc[labels['image_id'] == image[:-4]].values
         except IndexError:
                     print("[ERROR]", image)
-                    discared_data.append(image)
 
         if data[0][3] != 4:
             if cnt < train_count and ethnicity[data[0][3]] < 3000: # and ethnicity[data[0][3]] < 6000:
@@ -235,55 +231,12 @@ def formatdata(labels, train_count, validation_count, images, eth_choice, verbos
                 ethnicity[data[0][3]] += 1
                 age[groupAge(data[0][1])] += 1
                 gender[data[0][2]] += 1
-
-            # elif cnt < train_count:
-            #     partitions['validation'].append(image)
-            #     labels_dict['validation_age'].append(to_categorical(groupAge(data[0][1]), num_classes=12, dtype='float32'))
-            #     labels_dict['validation_gender'].append(data[0][2])
-            #     labels_dict['validation_ethnicity'].append(to_categorical(data[0][3], num_classes=5, dtype='float32'))
-
             else:
                 partitions['test'].append(image)
                 labels_dict['test_age'].append(to_categorical(groupAge(data[0][1]), num_classes=12, dtype='float32'))
                 labels_dict['test_gender'].append(data[0][2])
                 labels_dict['test_ethnicity'].append(to_categorical(data[0][3], num_classes=5, dtype='float32'))
 
-    # for ID in range(train_count):
-    #     try:
-    #         data = labels.loc[labels['image_id'] == images[ID][:-4]].values
-    #         labels_dict['train_age'].append(to_categorical(groupAge(data[0][1]), num_classes=12, dtype='float32'))
-    #         labels_dict['train_gender'].append(data[0][2])
-    #         labels_dict['train_ethnicity'].append(to_categorical(data[0][3], num_classes=5, dtype='float32'))
-    #         partitions['train'].append(images[ID])
-    #     except IndexError:
-    #         print("[ERROR]", images[ID])
-    #         discared_data.append(images[ID])
-    # print("[INFO] Done")
-
-    # print(f"[INFO] Preparing validation data ({validation_count})....")
-    # for ID in range(train_count, train_count+validation_count):
-    #     try:
-    #         data = labels.loc[labels['image_id'] == images[ID][:-4]].values
-    #         labels_dict['validation_age'].append(to_categorical(groupAge(data[0][1]), num_classes=12, dtype='float32'))
-    #         labels_dict['validation_gender'].append(data[0][2])
-    #         labels_dict['validation_ethnicity'].append(to_categorical(data[0][3], num_classes=5, dtype='float32'))
-    #         partitions['validation'].append(images[ID])
-    #     except IndexError:
-    #         print("[ERROR]", images[ID])
-    #         discared_data.append(images[ID])
-    # print("[INFO] Done")
-
-    # print(f"[INFO] Preparing test data....({len(labels)-train_count-validation_count})")
-    # for ID in range(train_count+validation_count, len(images)):
-    #     try:
-    #         data = labels.loc[labels['image_id'] == images[ID][:-4]].values
-    #         labels_dict['test_age'].append(to_categorical(groupAge(data[0][1]), num_classes=12, dtype='float32'))
-    #         labels_dict['test_gender'].append(data[0][2])
-    #         labels_dict['test_ethnicity'].append(to_categorical(data[0][3], num_classes=5, dtype='float32'))
-    #         partitions['test'].append(images[ID])
-    #     except IndexError:
-    #         print("[ERROR]", images[ID])
-    #         discared_data.append(images[ID])
     print(f"[INFO] Done. Train={len(partitions['train'])}. Test={len(partitions['test'])}")
 
     if verbose:
@@ -306,7 +259,6 @@ def formatdata(labels, train_count, validation_count, images, eth_choice, verbos
         print("Size of ethnicity as label: ", len(labels_dict['test_ethnicity']))
 
     return partitions, labels_dict
-
 
 class UTKFaceDataLoader(PrivacyDataLoader):
     def __init__(self, train_count, validation_count, test_count, n_sensitive_class, n_target_class, sensitive_attribute, public_attribute, dataset_path,
@@ -392,26 +344,6 @@ class UTKFaceDataLoader(PrivacyDataLoader):
         self.trainloader = torch.utils.data.DataLoader(self.trainset, batch_size=self.train_batch_size, shuffle=True, num_workers=1, pin_memory=True)
         self.testloader = torch.utils.data.DataLoader(self.testset, batch_size=self.test_batch_size, shuffle=False, num_workers=1)
 
-        # Create nets
-        print(f"[INFO] (UTKFace) Types: target={self.tar_choice}, discriminator={self.dis_choice}, adv={self.adv_choice}")
-        type_adv = 1 if self.embed_length == 2 else 3
-        attack_embed_length = {0:128, 1:256, 5:128, 7:128, 8:self.n_target_class}
-        # self.net = LeNet5()
-        self.net = ResNet18(num_classes=self.n_target_class, embed_length=self.embed_length)
-
-        self.target_net = create_discriminator(self.embed_length, self.n_target_class, self.tar_choice, 0, self.atk_layer)
-        self.discriminator_net = create_discriminator(self.embed_length, self.n_sensitive_class, self.dis_choice)
-        self.adversary_net = create_discriminator(self.embed_length, self.n_sensitive_class, self.adv_choice)
-
-        # Optimizers
-        print(f"[INFO] (UTKFace) learning rate: net={self.net_lr}, target={self.tar_lr}, discriminator={self.dis_lr}, adv={self.adv_lr}")
-        self.optimizer = optim.Adam(self.net.parameters(), lr=self.net_lr, weight_decay=1e-4, betas=(0.9, 0.999))
-        self.target_optimizer = optim.Adam(self.target_net.parameters(), lr=self.tar_lr, weight_decay=1e-4, betas=(0.9, 0.999))
-        self.discriminator_optimizer = optim.Adam(self.discriminator_net.parameters(), lr=self.dis_lr, weight_decay=1e-4, betas=(0.9, 0.999))
-        # self.adv_optimizer = optim.Adam(self.adversary_net.parameters(), lr=0.01, weight_decay=1e-3, betas=(0.9, 0.999))
-        self.adv_optimizer = optim.SGD(self.adversary_net.parameters(), lr=self.adv_lr)#, momentum=self.adv_decay)
-
-
     def set_stats(self, setname):
         public_count = np.zeros(self.n_target_class)
         sensitive_count = np.zeros(self.n_sensitive_class)
@@ -445,3 +377,22 @@ class UTKFaceDataLoader(PrivacyDataLoader):
             return data[0][2]
         else:
             return data[0][3]
+
+def load_utkface(val_size=0.0):
+    dataset_path = '/home/hjchris/data/UTKFace'
+
+    utk_dl=UTKFaceDataLoader(dataset_path = dataset_path,
+                                            train_count = 18964,                     # Total image is 23705. Randomly choose [train_count].
+                                            validation_count = 0,                    # There is no validation in the training.
+                                            test_count = 4741,                       # Redundent parameter.
+                                            train_batch_size = 128,
+                                            test_batch_size = 400,
+                                            public_attribute = 'gender',
+                                            n_target_class = 2,
+                                            sensitive_attribute = 'ethnicity',             # gender or ethnicity.
+                                            n_sensitive_class = 4,                  # gender = 2, ethnicity = 5. (for output size of target)
+                                            )
+    return {"train": utk_dl.trainloader,
+            "valid": None,
+            "test": utk_dl.testloader
+    }

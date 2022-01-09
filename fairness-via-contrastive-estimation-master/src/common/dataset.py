@@ -6,6 +6,7 @@ from torch.utils.data import TensorDataset
 
 from src.common.data.adult import load_adult
 from src.common.data.health import load_health
+from src.common.data.health import load_utkface
 
 logger = logging.getLogger()
 
@@ -23,6 +24,10 @@ def get_dataset(data_config, device="cpu"):
         data = load_health(val_size=val_size)
         c_size = 9
         c_type = "one_hot"
+    elif dataname == 'utkface':
+        data = load_utkface(val_size=val_size)
+        c_size=2
+        c_type="one_hot"
     else:
         logger.error(f"Invalid data name {dataname} specified")
         raise Exception(f"Invalid data name {dataname} specified")
@@ -30,6 +35,23 @@ def get_dataset(data_config, device="cpu"):
     train, valid, test = data["train"], data["valid"], data["test"]
     if valid is None:
         valid = data["test"]
+
+    if dataname == 'utkface':
+        train_data=list(train)
+        test_data=list(test)
+        valid_data=list(valid)
+        return (
+            Box({"train": train_data,
+                 "test": test_data,
+                 "valid": valid_data,
+            }), {
+                "input_shape": train_data[0].shape[1:],
+                "c_size": c_size,
+                "c_type": c_type,
+                "y_size": 2,
+                "y_type": "binary",
+            }
+        )
 
     return (
         Box({"train": TensorDataset(
