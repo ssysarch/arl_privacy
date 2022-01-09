@@ -391,6 +391,7 @@ def load_utkface(val_size=0.0):
                                             sensitive_attribute = 'ethnicity',             # gender or ethnicity.
                                             n_sensitive_class = 4,                  # gender = 2, ethnicity = 5. (for output size of target)
                                             )
+    utk_dl.load()
     return {"train": utk_dl.trainloader,
             "valid": None,
             "test": utk_dl.testloader
