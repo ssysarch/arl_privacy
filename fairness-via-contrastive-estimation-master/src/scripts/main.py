@@ -39,7 +39,7 @@ def parser_setup():
                         default=["test", "train"])
     parser.add_argument("--statefile", "-s", required=False, default=None)
 
-    parser.add_argument("--data.name", "-d", required=False, choices=["adult", "health"])
+    parser.add_argument("--data.name", "-d", required=False, choices=["adult", "health", "utkface"])
     parser.add_argument("--data.val_size", default=0, type=float, required=False)
 
     parser.add_argument("--model.name", required=False,
