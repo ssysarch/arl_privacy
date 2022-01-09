@@ -381,9 +381,9 @@ def load_utkface(val_size=0.0):
     dataset_path = '/home/hjchris/data/UTKFace'
 
     utk_dl=UTKFaceDataLoader(dataset_path = dataset_path,
-                                            train_count = 18964,                     # Total image is 23705. Randomly choose [train_count].
+                                            train_count = 512,                     # Total image is 23705. Randomly choose [train_count].
                                             validation_count = 0,                    # There is no validation in the training.
-                                            test_count = 4741,                       # Redundent parameter.
+                                            test_count = 400,                       # Redundent parameter.
                                             train_batch_size = 128,
                                             test_batch_size = 400,
                                             public_attribute = 'gender',
