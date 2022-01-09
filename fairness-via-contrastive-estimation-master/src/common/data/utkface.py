@@ -8,7 +8,6 @@ from torch.utils.data import Dataset
 import os
 import pandas as pd
 import torch.optim as optim
-from skimage import transform
 from tensorflow.keras.utils import to_categorical
 
 def groupAge(age):
