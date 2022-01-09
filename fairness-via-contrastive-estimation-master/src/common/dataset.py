@@ -6,7 +6,7 @@ from torch.utils.data import TensorDataset
 
 from src.common.data.adult import load_adult
 from src.common.data.health import load_health
-from src.common.data.health import load_utkface
+from src.common.data.utkface import load_utkface
 
 logger = logging.getLogger()
 
