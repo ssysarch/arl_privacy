@@ -195,7 +195,7 @@ class FolderDataset(Dataset):
         else:
             return data[0][3]
 
-def formatdata(labels, train_count, validation_count, images, eth_choice, verbose=False):
+def formatdata(labels, train_count, validation_count, test_count, images, eth_choice, verbose=False):
 
     partitions = {'train': [],
                     'validation': [],
@@ -230,11 +230,13 @@ def formatdata(labels, train_count, validation_count, images, eth_choice, verbos
                 ethnicity[data[0][3]] += 1
                 age[groupAge(data[0][1])] += 1
                 gender[data[0][2]] += 1
-            else:
+            elif cnt < train_count+test_count:
                 partitions['test'].append(image)
                 labels_dict['test_age'].append(to_categorical(groupAge(data[0][1]), num_classes=12, dtype='float32'))
                 labels_dict['test_gender'].append(data[0][2])
                 labels_dict['test_ethnicity'].append(to_categorical(data[0][3], num_classes=5, dtype='float32'))
+            else:
+                break
 
     print(f"[INFO] Done. Train={len(partitions['train'])}. Test={len(partitions['test'])}")
 
@@ -315,11 +317,11 @@ class UTKFaceDataLoader(PrivacyDataLoader):
 
         # Splitting labels. Data is note read now but at Dataloader to be memory efficient.
         # train:validation:test = 70:20:10 = 16596:4742:2370
-        self.partitions, labels_dict = formatdata(self.labels, self.train_count, self.validation_count, images, self.eth_choice)
+        self.partitions, labels_dict = formatdata(self.labels, self.train_count, self.validation_count, self.test_count, images, self.eth_choice)
 
         # train/test dataset and private label parameters
         self.train_size = self.train_count
-        self.test_size = len(self.labels) - self.validation_count - self.train_count
+        self.test_size = self.test_count
 
         # create train/test datasets
         print(f"[INFO] (UTKFace) Public label={self.public_attribute}, Sensitive label={self.sensitive_attribute}")
